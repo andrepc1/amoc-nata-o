@@ -1,0 +1,9 @@
+{
+  "name": "Alunos AMOC",
+  "short_name": "AMOC",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#EAF7FA",
+  "theme_color": "#075E76",
+  "icons": []
+}
