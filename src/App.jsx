@@ -352,6 +352,75 @@ export default function App() {
     }
     setCopiadoId(a.id); setTimeout(() => setCopiadoId(null), 1800);
   };
+  const imprimirRelatorio = (titulo, html) => {
+    const win = window.open("", "_blank");
+    win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${titulo}</title><style>
+      body{font-family:Arial,sans-serif;padding:24px;color:#0A2A33;max-width:900px;margin:0 auto}
+      h1{color:#075E76;border-bottom:3px solid #075E76;padding-bottom:8px;margin-bottom:4px}
+      h2{color:#075E76;margin-top:0}
+      .resumo{display:flex;gap:12px;margin:16px 0;flex-wrap:wrap}
+      .stat{background:#EAF7FA;padding:12px 16px;border-radius:8px;text-align:center;min-width:120px}
+      .stat-label{font-size:12px;color:#5B7C85}
+      .stat-value{font-size:20px;font-weight:bold;margin-top:4px}
+      table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px}
+      th{background:#075E76;color:white;padding:8px 10px;text-align:left}
+      td{padding:7px 10px;border-bottom:1px solid #D4E9EE}
+      tr:nth-child(even){background:#F5FBFC}
+      .pago{color:#0E9F6E;font-weight:bold}
+      .pendente{color:#E8820C}
+      .footer{margin-top:24px;font-size:11px;color:#5B7C85;text-align:center;border-top:1px solid #D4E9EE;padding-top:12px}
+      @media print{body{padding:12px}.no-print{display:none}}
+    </style></head><body>${html}
+    <div class="footer">AMOC — Natação e Hidroginástica · Gerado em ${new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</div>
+    </body></html>`);
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 400);
+  };
+
+  const relatorioMes = (m) => {
+    const fmt = (n) => (Number(n) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    const lista2 = [...(m.alunosSnap || [])].sort((a, b) => Number(a.pago) - Number(b.pago) || a.nome.localeCompare(b.nome));
+    const porProf = {};
+    lista2.forEach(a => { if (!porProf[a.professor]) porProf[a.professor] = []; porProf[a.professor].push(a); });
+    let html = `<h1>AMOC — Natação e Hidroginástica</h1><h2>Relatório Mensal — ${m.mes}</h2>
+      <div class="resumo">
+        <div class="stat"><div class="stat-label">Recebido</div><div class="stat-value" style="color:#0E9F6E">${fmt(m.recebido)}</div></div>
+        <div class="stat"><div class="stat-label">Previsto</div><div class="stat-value">${fmt(m.previsto)}</div></div>
+        <div class="stat"><div class="stat-label">Pendente</div><div class="stat-value" style="color:#E8820C">${fmt(m.pendente)}</div></div>
+        <div class="stat"><div class="stat-label">Pagaram</div><div class="stat-value">${m.qtdPagos}/${m.totalAlunos}</div></div>
+      </div>`;
+    if (lista2.length) {
+      html += `<table><tr><th>Aluno</th><th>Professor</th><th>Mensalidade</th><th>Situação</th><th>Forma</th></tr>`;
+      lista2.forEach(a => {
+        const forma = a.pago ? (a.formaPagamento === "pix" ? "PIX" : "Dinheiro") : "—";
+        html += `<tr><td>${a.nome}</td><td>${a.professor || ""}</td><td>${fmt(a.mensalidade)}</td>
+          <td class="${a.pago ? "pago" : "pendente"}">${a.pago ? "✓ Pago" : "✗ Pendente"}</td><td>${forma}</td></tr>`;
+      });
+      html += "</table>";
+    }
+    return html;
+  };
+
+  const relatorioAno = (ano) => {
+    const fmt = (n) => (Number(n) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    const d = dadosAno(ano);
+    let html = `<h1>AMOC — Natação e Hidroginástica</h1><h2>Relatório Anual — ${ano}</h2>
+      <div class="resumo">
+        <div class="stat"><div class="stat-label">Total recebido</div><div class="stat-value" style="color:#0E9F6E">${fmt(d.recebido)}</div></div>
+        <div class="stat"><div class="stat-label">Total previsto</div><div class="stat-value">${fmt(d.previsto)}</div></div>
+        <div class="stat"><div class="stat-label">Meses fechados</div><div class="stat-value">${d.meses.length}</div></div>
+      </div>
+      <table><tr><th>Mês</th><th>Alunos</th><th>Pagaram</th><th>Recebido</th><th>Previsto</th><th>Pendente</th></tr>`;
+    [...d.meses].reverse().forEach(m => {
+      html += `<tr><td>${m.mes}</td><td>${m.totalAlunos}</td><td>${m.qtdPagos}</td>
+        <td class="pago">${fmt(m.recebido)}</td><td>${fmt(m.previsto)}</td>
+        <td class="${m.pendente > 0 ? "pendente" : ""}">${fmt(m.pendente)}</td></tr>`;
+    });
+    html += `</table>`;
+    return html;
+  };
+
   const textoPrestacao = (m) => {
     const fmt = (n) => `R$ ${(Number(n) || 0).toFixed(2).replace(".", ",")}`;
     const lista2 = m.alunosSnap || [];
@@ -1027,7 +1096,14 @@ export default function App() {
                   <div key={ano}>
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-bold text-base" style={{ color: C.deep }}>{ano}</h3>
-                      <div className="text-right"><div className="text-xs" style={{ color: C.sub }}>Recebido no ano</div><div className="font-bold" style={{ color: C.paid }}>{brl(d.recebido)}</div></div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right"><div className="text-xs" style={{ color: C.sub }}>Recebido no ano</div><div className="font-bold" style={{ color: C.paid }}>{brl(d.recebido)}</div></div>
+                        <button type="button" onClick={() => imprimirRelatorio(`Relatório Anual ${ano}`, relatorioAno(ano))}
+                          className="px-2 py-1 rounded-lg text-xs font-medium"
+                          style={{ background: C.tint, color: C.deep, border: `1px solid ${C.line}` }}>
+                          🖨️ PDF
+                        </button>
+                      </div>
                     </div>
                     {d.meses.length === 0 ? (
                       <p className="text-sm py-3 text-center rounded-xl" style={{ color: C.sub, background: C.tint }}>Nenhum mês fechado em {ano} ainda</p>
@@ -1087,8 +1163,13 @@ export default function App() {
                 </div>
               )}
             </div>
-            <div className="px-5 py-4 shrink-0" style={{ borderTop: `1px solid ${C.line}` }}>
+            <div className="px-5 py-4 shrink-0 space-y-2" style={{ borderTop: `1px solid ${C.line}` }}>
               <a href={zapShare(textoPrestacao(mesDetalhe))} target="_blank" rel="noreferrer" className="w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-1.5" style={{ background: "#1FA855" }}><MessageCircle size={16} /> Compartilhar no WhatsApp</a>
+              <button type="button" onClick={() => imprimirRelatorio(`Relatório ${mesDetalhe.mes}`, relatorioMes(mesDetalhe))}
+                className="w-full py-2.5 rounded-xl font-semibold flex items-center justify-center gap-1.5 text-sm"
+                style={{ background: C.tint, color: C.deep, border: `1px solid ${C.line}` }}>
+                🖨️ Imprimir / Salvar PDF
+              </button>
             </div>
           </div>
         </div>
