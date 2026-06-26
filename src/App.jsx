@@ -509,7 +509,7 @@ export default function App() {
           <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-3" style={{ background: "rgba(255,255,255,0.14)" }}>
             <Waves size={30} className="text-white" />
           </div>
-          <h1 className="text-white text-2xl font-bold">Alunos AMOC</h1>
+          <h1 className="text-white text-2xl font-bold">AMOC Piscina</h1>
           <p className="text-white/70 text-sm mt-1 mb-7">Natação e Hidroginástica</p>
           <button type="button" onClick={() => irModo("prof")}
             className="w-full rounded-2xl p-4 mb-3 flex items-center gap-3 text-left active:scale-[0.99] transition-transform"
@@ -641,7 +641,7 @@ export default function App() {
         </div>
         <div className="flex items-end justify-between">
           <div>
-            <h1 className="text-white text-2xl font-bold mt-1">Alunos AMOC</h1>
+            <h1 className="text-white text-2xl font-bold mt-1">AMOC Piscina</h1>
             {ehProf ? (
               <button type="button" onClick={trocarAcesso} className="flex items-center gap-1.5 text-white/90 text-sm mt-1">
                 <UserCog size={14} /> Prof. {profAtual} <ChevronDown size={14} />
