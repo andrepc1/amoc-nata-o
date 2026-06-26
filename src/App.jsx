@@ -3,7 +3,7 @@ import {
   Plus, Search, Pencil, Trash2, Clock, X, Check,
   Waves, CalendarDays, Wallet, Users, AlertCircle, RotateCcw, History,
   ChevronDown, MessageCircle, Settings, Copy, Lock, Delete,
-  ShieldCheck, UserCog, GraduationCap, ChevronRight,
+  ShieldCheck, UserCog, GraduationCap, ChevronRight, LogOut,
 } from "lucide-react";
 import { dadosRef } from "./firebase";
 import { onValue, get, set } from "firebase/database";
@@ -554,13 +554,14 @@ export default function App() {
               <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: C.aqua }} /> Sincroniza em tempo real
             </div>
           </div>
-          {!ehProf && (
-            <div className="flex items-center gap-2">
-              <button type="button" onClick={onCadeado} className="p-2 rounded-xl text-white" style={{ background: "rgba(255,255,255,0.18)" }}><ShieldCheck size={16} /></button>
-              <button type="button" onClick={abrirConfig} className="p-2 rounded-xl text-white" style={{ background: "rgba(255,255,255,0.18)" }}><Settings size={16} /></button>
-              <button type="button" onClick={() => setVerHistorico(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white" style={{ background: "rgba(255,255,255,0.18)" }}><History size={15} /> Financeiro</button>
+          <div className="flex items-center gap-2">
+              <button type="button" onClick={trocarAcesso} className="p-2 rounded-xl text-white" style={{ background: "rgba(255,255,255,0.18)" }} title="Sair"><LogOut size={16} /></button>
+              {!ehProf && <>
+                <button type="button" onClick={onCadeado} className="p-2 rounded-xl text-white" style={{ background: "rgba(255,255,255,0.18)" }}><ShieldCheck size={16} /></button>
+                <button type="button" onClick={abrirConfig} className="p-2 rounded-xl text-white" style={{ background: "rgba(255,255,255,0.18)" }}><Settings size={16} /></button>
+                <button type="button" onClick={() => setVerHistorico(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white" style={{ background: "rgba(255,255,255,0.18)" }}><History size={15} /> Financeiro</button>
+              </>}
             </div>
-          )}
         </div>
         {ehProf ? (
           <div className="mt-5 rounded-2xl px-4 py-3 flex items-center gap-3" style={{ background: "rgba(255,255,255,0.16)" }}>
