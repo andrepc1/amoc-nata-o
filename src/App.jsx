@@ -138,6 +138,7 @@ export default function App() {
   const [respErro, setRespErro] = useState(false);
   const [pinRevelado, setPinRevelado] = useState("");
   const [verHistorico, setVerHistorico] = useState(false);
+  const [quickEdit, setQuickEdit] = useState(null); // { id, field, value }
   const fieldsRef = useRef(null);
   const nomeRef = useRef(null);
   const isFirstLoad = useRef(true);
@@ -297,6 +298,14 @@ export default function App() {
   const excluir = (id) => commitAlunos((l) => l.filter((a) => a.id !== id));
   const confirmarExcluir = () => { if (excluirId != null) excluir(excluirId); setExcluirId(null); };
   const togglePago = (id) => { if (!exigeAdmin()) return; commitAlunos((l) => l.map((a) => (a.id === id ? { ...a, pago: !a.pago } : a))); };
+
+  const salvarQuickEdit = () => {
+    if (!quickEdit) return;
+    const { id, field, value } = quickEdit;
+    setQuickEdit(null);
+    const parsed = field === "mensalidade" ? parseFloat(String(value).replace(",", ".")) || 0 : value;
+    commitAlunos((l) => l.map((a) => a.id === id ? { ...a, [field]: parsed } : a));
+  };
 
   const fecharMes = () => {
     const previsto = alunos.reduce((s, a) => s + (Number(a.mensalidade) || 0), 0);
@@ -672,7 +681,21 @@ export default function App() {
                   </div>
                   {!ehProf && (
                     <div className="text-right shrink-0">
-                      <div className="font-bold" style={{ color: C.ink }}>{brl(a.mensalidade)}</div>
+                      {quickEdit?.id === a.id && quickEdit?.field === "mensalidade" ? (
+                        <input autoFocus value={quickEdit.value}
+                          onChange={(e) => setQuickEdit({ ...quickEdit, value: e.target.value })}
+                          onBlur={salvarQuickEdit}
+                          onKeyDown={(e) => { if (e.key === "Enter") salvarQuickEdit(); if (e.key === "Escape") setQuickEdit(null); }}
+                          className="w-24 text-right px-2 py-1 rounded-lg text-sm font-bold outline-none"
+                          style={{ background: C.tint, border: `1px solid ${C.water}`, color: C.ink }}
+                          inputMode="decimal" placeholder="0" />
+                      ) : (
+                        <button type="button"
+                          onClick={() => { if (!exigeAdmin()) return; setQuickEdit({ id: a.id, field: "mensalidade", value: a.mensalidade || "" }); }}
+                          className="font-bold" style={{ color: a.mensalidade ? C.ink : C.water }}>
+                          {a.mensalidade ? brl(a.mensalidade) : "R$ —"}
+                        </button>
+                      )}
                       {a.vencimento ? (estaVencido(a) ? (
                         <div className="text-xs font-semibold flex items-center gap-1 justify-end" style={{ color: "#D14343" }}><AlertCircle size={12} /> venceu dia {a.vencimento}</div>
                       ) : (<div className="text-xs" style={{ color: C.sub }}>vence dia {a.vencimento}</div>)) : null}
@@ -681,10 +704,27 @@ export default function App() {
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2.5 text-sm" style={{ color: C.sub }}>
                   {(a.dias || a.horario) && (<span className="flex items-center gap-1"><Clock size={13} /> {[a.dias, a.horario].filter(Boolean).join(" · ")}</span>)}
-                  {a.contato && (
-                    <a href={linkZap(a, false)} target="_blank" rel="noreferrer" className="flex items-center gap-1">
+                  {quickEdit?.id === a.id && quickEdit?.field === "contato" ? (
+                    <span className="flex items-center gap-1">
+                      <MessageCircle size={13} style={{ color: C.water, flexShrink: 0 }} />
+                      <input autoFocus value={quickEdit.value}
+                        onChange={(e) => setQuickEdit({ ...quickEdit, value: formatTel(e.target.value) })}
+                        onBlur={salvarQuickEdit}
+                        onKeyDown={(e) => { if (e.key === "Enter") salvarQuickEdit(); if (e.key === "Escape") setQuickEdit(null); }}
+                        className="outline-none text-sm w-36"
+                        style={{ background: "transparent", borderBottom: `1px solid ${C.water}`, color: C.ink }}
+                        inputMode="tel" placeholder="(69) 99999-9999" />
+                    </span>
+                  ) : a.contato ? (
+                    <a href={linkZap(a, false)} target="_blank" rel="noreferrer" className="flex items-center gap-1"
+                      onDoubleClick={(e) => { e.preventDefault(); setQuickEdit({ id: a.id, field: "contato", value: a.contato }); }}>
                       <MessageCircle size={13} /> {a.contato}
                     </a>
+                  ) : (
+                    <button type="button" onClick={() => setQuickEdit({ id: a.id, field: "contato", value: "" })}
+                      className="flex items-center gap-1 text-xs" style={{ color: C.water }}>
+                      <MessageCircle size={13} /> Adicionar contato
+                    </button>
                   )}
                   {a.obs && <span className="w-full text-xs italic mt-0.5" style={{ color: C.sub }}>{a.obs}</span>}
                 </div>
