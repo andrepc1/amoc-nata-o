@@ -3,7 +3,7 @@ import {
   Plus, Search, Pencil, Trash2, Clock, X, Check,
   Waves, CalendarDays, Wallet, Users, AlertCircle, RotateCcw, History,
   ChevronDown, MessageCircle, Settings, Copy, Lock, Delete,
-  ShieldCheck, UserCog, GraduationCap, ChevronRight, LogOut,
+  ShieldCheck, UserCog, GraduationCap, ChevronRight, LogOut, RefreshCw,
 } from "lucide-react";
 import { dadosRef } from "./firebase";
 import { onValue, get, set } from "firebase/database";
@@ -138,7 +138,8 @@ export default function App() {
   const [respErro, setRespErro] = useState(false);
   const [pinRevelado, setPinRevelado] = useState("");
   const [verHistorico, setVerHistorico] = useState(false);
-  const [quickEdit, setQuickEdit] = useState(null); // { id, field, value }
+  const [quickEdit, setQuickEdit] = useState(null);
+  const [refreshing, setRefreshing] = useState(false); // { id, field, value }
   const fieldsRef = useRef(null);
   const nomeRef = useRef(null);
   const isFirstLoad = useRef(true);
@@ -180,6 +181,21 @@ export default function App() {
   }, []);
 
   const flashSalvo = () => { setSalvo(true); setTimeout(() => setSalvo(false), 1500); };
+
+  const recarregar = async () => {
+    setRefreshing(true);
+    try {
+      const snap = await get(dadosRef);
+      const d = snap.val();
+      if (d) {
+        setAlunos(d.alunos || []);
+        if (d.ref && typeof d.ref.mes === "number") setRef(d.ref);
+        setHistorico(d.historico || []);
+        if (d.config) setConfig({ ...emptyConfig, ...d.config });
+      }
+    } catch (e) { console.error(e); }
+    setTimeout(() => setRefreshing(false), 600);
+  };
 
   const persist = async (novosAlunos, novoRef = ref, novoHist = historico, novoConfig = config) => {
     setAlunos(novosAlunos); setRef(novoRef); setHistorico(novoHist); setConfig(novoConfig);
@@ -640,6 +656,9 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+              <button type="button" onClick={recarregar} className="p-2 rounded-xl text-white" style={{ background: "rgba(255,255,255,0.18)" }} title="Atualizar">
+                <RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />
+              </button>
               <button type="button" onClick={trocarAcesso} className="flex items-center gap-1.5 px-2 sm:px-3 py-2 rounded-xl text-white text-sm font-medium" style={{ background: "rgba(255,255,255,0.18)" }}>
                 <LogOut size={16} /><span className="hidden sm:inline">Voltar</span>
               </button>
