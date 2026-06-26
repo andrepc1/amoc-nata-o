@@ -570,7 +570,9 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-              <button type="button" onClick={trocarAcesso} className="p-2 rounded-xl text-white" style={{ background: "rgba(255,255,255,0.18)" }} title="Sair"><LogOut size={16} /></button>
+              <button type="button" onClick={trocarAcesso} className="flex items-center gap-1.5 px-2 sm:px-3 py-2 rounded-xl text-white text-sm font-medium" style={{ background: "rgba(255,255,255,0.18)" }}>
+                <LogOut size={16} /><span className="hidden sm:inline">Voltar</span>
+              </button>
               {!ehProf && <>
                 <button type="button" onClick={onCadeado} className="p-2 rounded-xl text-white" style={{ background: "rgba(255,255,255,0.18)" }}><ShieldCheck size={16} /></button>
                 <button type="button" onClick={abrirConfig} className="p-2 rounded-xl text-white" style={{ background: "rgba(255,255,255,0.18)" }}><Settings size={16} /></button>
@@ -683,7 +685,20 @@ export default function App() {
                   <div className="min-w-0">
                     <h3 className="font-semibold truncate">{a.nome}</h3>
                     <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                      <span className="inline-block text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: C.tint, color: C.deep }}>{a.nivel}</span>
+                      {quickEdit?.id === a.id && quickEdit?.field === "nivel" ? (
+                        <select autoFocus value={quickEdit.value}
+                          onChange={(e) => setQuickEdit({ ...quickEdit, value: e.target.value })}
+                          onBlur={salvarQuickEdit}
+                          className="text-xs px-2 py-0.5 rounded-full font-medium outline-none"
+                          style={{ background: C.tint, border: `1px solid ${C.water}`, color: C.deep }}>
+                          {NIVEIS.map((n) => <option key={n}>{n}</option>)}
+                        </select>
+                      ) : (
+                        <button type="button" onClick={() => setQuickEdit({ id: a.id, field: "nivel", value: a.nivel })}
+                          className="inline-block text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: C.tint, color: C.deep }}>
+                          {a.nivel}
+                        </button>
+                      )}
                       {!ehProf && a.professor && (<span className="inline-block text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "#E8F0FE", color: C.water }}>Prof. {a.professor}</span>)}
                     </div>
                   </div>
