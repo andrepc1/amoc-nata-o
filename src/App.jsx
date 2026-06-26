@@ -297,7 +297,8 @@ export default function App() {
   };
   const excluir = (id) => commitAlunos((l) => l.filter((a) => a.id !== id));
   const confirmarExcluir = () => { if (excluirId != null) excluir(excluirId); setExcluirId(null); };
-  const togglePago = (id) => { if (!exigeAdmin()) return; commitAlunos((l) => l.map((a) => (a.id === id ? { ...a, pago: !a.pago } : a))); };
+  const marcarPago = (id, forma) => { if (!exigeAdmin()) return; commitAlunos((l) => l.map((a) => a.id === id ? { ...a, pago: true, formaPagamento: forma } : a)); };
+  const desmarcarPago = (id) => { if (!exigeAdmin()) return; commitAlunos((l) => l.map((a) => a.id === id ? { ...a, pago: false, formaPagamento: "" } : a)); };
 
   const salvarQuickEdit = () => {
     if (!quickEdit) return;
@@ -317,7 +318,7 @@ export default function App() {
     const snap = {
       id: Date.now(), mes: labelMes(ref), ano: ref.ano, mesNum: ref.mes, data: new Date().toISOString(),
       totalAlunos: alunos.length, qtdPagos: alunos.filter((a) => a.pago).length, previsto, recebido, pendente: previsto - recebido,
-      alunosSnap: alunos.map((a) => ({ nome: a.nome, professor: a.professor, mensalidade: Number(a.mensalidade) || 0, pago: !!a.pago })),
+      alunosSnap: alunos.map((a) => ({ nome: a.nome, professor: a.professor, mensalidade: Number(a.mensalidade) || 0, pago: !!a.pago, formaPagamento: a.formaPagamento || "" })),
     };
     const prox = proximoMes(ref);
     persist(alunos.map((a) => ({ ...a, pago: false })), prox, [snap, ...historico]);
@@ -776,11 +777,26 @@ export default function App() {
                 </div>
                 <div className="flex gap-2 mt-3 pt-2.5" style={{ borderTop: `1px solid ${C.line}` }}>
                   {!ehProf && (
-                    <button type="button" onClick={() => togglePago(a.id)}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold flex-1 justify-center"
-                      style={a.pago ? { background: "#E7F8ED", color: C.paid } : { background: `linear-gradient(135deg, ${C.deep}, ${C.water})`, color: "#fff" }}>
-                      {a.pago ? <><Check size={14} /> Pago</> : "Marcar pago"}
-                    </button>
+                    a.pago ? (
+                      <button type="button" onClick={() => desmarcarPago(a.id)}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold flex-1 justify-center"
+                        style={{ background: "#E7F8ED", color: C.paid }}>
+                        <Check size={14} /> Pago — {a.formaPagamento === "pix" ? "PIX" : "Dinheiro"}
+                      </button>
+                    ) : (
+                      <>
+                        <button type="button" onClick={() => marcarPago(a.id, "pix")}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold flex-1 justify-center"
+                          style={{ background: `linear-gradient(135deg, ${C.deep}, ${C.water})`, color: "#fff" }}>
+                          PIX
+                        </button>
+                        <button type="button" onClick={() => marcarPago(a.id, "dinheiro")}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold flex-1 justify-center"
+                          style={{ background: `linear-gradient(135deg, ${C.water}, ${C.aqua})`, color: "#fff" }}>
+                          Dinheiro
+                        </button>
+                      </>
+                    )
                   )}
                   {!ehProf && a.contato && (
                     <a href={linkZap(a, true)} target="_blank" rel="noreferrer"
@@ -1065,7 +1081,7 @@ export default function App() {
                     <div key={i} className="flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: C.tint }}>
                       <div className="w-2 h-2 rounded-full shrink-0" style={{ background: a.pago ? C.paid : C.due }} />
                       <div className="min-w-0 flex-1"><div className="font-medium text-sm truncate">{a.nome}</div>{a.professor && <div className="text-xs" style={{ color: C.sub }}>{a.professor}</div>}</div>
-                      <div className="text-right shrink-0"><div className="font-semibold text-sm">{brl(a.mensalidade)}</div><div className="text-xs font-medium" style={{ color: a.pago ? C.paid : C.due }}>{a.pago ? "Pago" : "Não pagou"}</div></div>
+                      <div className="text-right shrink-0"><div className="font-semibold text-sm">{brl(a.mensalidade)}</div><div className="text-xs font-medium" style={{ color: a.pago ? C.paid : C.due }}>{a.pago ? `Pago — ${a.formaPagamento === "pix" ? "PIX" : "Dinheiro"}` : "Não pagou"}</div></div>
                     </div>
                   ))}
                 </div>
