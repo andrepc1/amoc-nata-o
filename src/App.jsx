@@ -529,7 +529,9 @@ export default function App() {
     );
   }
 
-  const totalProf = ehProf ? alunos.filter((a) => a.professor === profAtual).length : stats.total;
+  const totalProf = ehProf
+    ? (filtroProf === "todos" ? alunos.length : alunos.filter((a) => a.professor === filtroProf).length)
+    : stats.total;
 
   return (
     <div className="min-h-screen pb-28" style={{ background: C.tint, color: C.ink }}>
@@ -581,7 +583,9 @@ export default function App() {
             <Users size={20} className="text-white shrink-0" />
             <div className="text-white">
               <div className="font-bold text-lg leading-tight">{totalProf}</div>
-              <div className="text-white/80 text-xs">{totalProf === 1 ? "aluno seu" : "alunos seus"}</div>
+              <div className="text-white/80 text-xs">
+                {filtroProf === profAtual ? (totalProf === 1 ? "aluno seu" : "alunos seus") : (totalProf === 1 ? "aluno" : "alunos")}
+              </div>
             </div>
             <div className="ml-auto text-white/70 text-xs text-right leading-snug">cai direto na<br />lista da AMOC</div>
           </div>
