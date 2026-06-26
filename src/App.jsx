@@ -738,10 +738,15 @@ export default function App() {
                         inputMode="tel" placeholder="(69) 99999-9999" />
                     </span>
                   ) : a.contato ? (
-                    <a href={linkZap(a, false)} target="_blank" rel="noreferrer" className="flex items-center gap-1"
-                      onDoubleClick={(e) => { e.preventDefault(); setQuickEdit({ id: a.id, field: "contato", value: a.contato }); }}>
-                      <MessageCircle size={13} /> {a.contato}
-                    </a>
+                    <span className="flex items-center gap-1">
+                      <a href={linkZap(a, false)} target="_blank" rel="noreferrer" className="flex items-center gap-1">
+                        <MessageCircle size={13} /> {a.contato}
+                      </a>
+                      <button type="button" onClick={() => setQuickEdit({ id: a.id, field: "contato", value: a.contato })}
+                        className="ml-1" style={{ color: C.sub }}>
+                        <Pencil size={11} />
+                      </button>
+                    </span>
                   ) : (
                     <button type="button" onClick={() => setQuickEdit({ id: a.id, field: "contato", value: "" })}
                       className="flex items-center gap-1 text-xs" style={{ color: C.water }}>
