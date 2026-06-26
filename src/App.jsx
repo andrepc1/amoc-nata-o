@@ -303,7 +303,11 @@ export default function App() {
     if (!quickEdit) return;
     const { id, field, value } = quickEdit;
     setQuickEdit(null);
-    const parsed = field === "mensalidade" ? parseFloat(String(value).replace(",", ".")) || 0 : value;
+    const parsed = field === "mensalidade"
+      ? parseFloat(String(value).replace(",", ".")) || 0
+      : field === "vencimento"
+      ? parseInt(value) || ""
+      : value;
     commitAlunos((l) => l.map((a) => a.id === id ? { ...a, [field]: parsed } : a));
   };
 
@@ -696,9 +700,27 @@ export default function App() {
                           {a.mensalidade ? brl(a.mensalidade) : "R$ —"}
                         </button>
                       )}
-                      {a.vencimento ? (estaVencido(a) ? (
-                        <div className="text-xs font-semibold flex items-center gap-1 justify-end" style={{ color: "#D14343" }}><AlertCircle size={12} /> venceu dia {a.vencimento}</div>
-                      ) : (<div className="text-xs" style={{ color: C.sub }}>vence dia {a.vencimento}</div>)) : null}
+                      {quickEdit?.id === a.id && quickEdit?.field === "vencimento" ? (
+                        <input autoFocus value={quickEdit.value}
+                          onChange={(e) => setQuickEdit({ ...quickEdit, value: e.target.value.replace(/\D/g, "").slice(0, 2) })}
+                          onBlur={salvarQuickEdit}
+                          onKeyDown={(e) => { if (e.key === "Enter") salvarQuickEdit(); if (e.key === "Escape") setQuickEdit(null); }}
+                          className="w-16 text-right px-2 py-0.5 rounded-lg text-xs font-medium outline-none mt-0.5"
+                          style={{ background: C.tint, border: `1px solid ${C.water}`, color: C.ink }}
+                          inputMode="numeric" placeholder="dia" />
+                      ) : (
+                        <button type="button"
+                          onClick={() => { if (!exigeAdmin()) return; setQuickEdit({ id: a.id, field: "vencimento", value: a.vencimento || "" }); }}
+                          className="text-xs mt-0.5 flex items-center gap-1 justify-end">
+                          {a.vencimento ? (estaVencido(a) ? (
+                            <span className="font-semibold flex items-center gap-1" style={{ color: "#D14343" }}><AlertCircle size={12} /> venceu dia {a.vencimento}</span>
+                          ) : (
+                            <span style={{ color: C.sub }}>vence dia {a.vencimento}</span>
+                          )) : (
+                            <span style={{ color: C.water }}>+ vencimento</span>
+                          )}
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
