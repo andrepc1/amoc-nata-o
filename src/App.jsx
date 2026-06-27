@@ -357,11 +357,6 @@ export default function App() {
   const pixCola = (valor) => pixCopiaCola({ chave: config.pixChave, tipo: config.pixTipo, nome: config.pixNome, cidade: config.pixCidade, valor });
   const zapShare = (txt) => `https://wa.me/?text=${encodeURIComponent(txt)}`;
   const modalidade = (a) => a.nivel === "Hidroginástica" ? "hidroginástica" : "natação";
-  const linkPedirComprovante = (a) => {
-    const num = (a.contato || "").replace(/\D/g, "");
-    const msg = `Olá ${a.nome}! 😊 Por favor, nos envie o comprovante de pagamento da mensalidade de ${modalidade(a)} (${brl(a.mensalidade)}) para confirmarmos o recebimento. Obrigado!`;
-    return `https://wa.me/55${num}?text=${encodeURIComponent(msg)}`;
-  };
   const linkEnviarRecibo = (a) => {
     const num = (a.contato || "").replace(/\D/g, "");
     const forma = a.formaPagamento === "pix" ? "PIX" : "Dinheiro";
@@ -903,14 +898,6 @@ export default function App() {
                       className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium justify-center"
                       style={{ background: "#E7F8ED", color: C.paid }}>
                       <MessageCircle size={14} /> Cobrar
-                    </a>
-                  )}
-                  {!ehProf && a.contato && !a.pago && (
-                    <a href={linkPedirComprovante(a)} target="_blank" rel="noreferrer"
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium justify-center"
-                      style={{ background: C.tint, color: C.sub }}
-                      title="Solicitar comprovante de pagamento">
-                      <FileCheck size={14} /> Comp.
                     </a>
                   )}
                   {!ehProf && a.contato && a.pago && (
