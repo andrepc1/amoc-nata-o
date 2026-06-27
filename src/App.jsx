@@ -3,7 +3,7 @@ import {
   Plus, Search, Pencil, Trash2, Clock, X, Check,
   Waves, CalendarDays, Wallet, Users, AlertCircle, RotateCcw, History,
   ChevronDown, MessageCircle, Settings, Copy, Lock, Delete,
-  ShieldCheck, UserCog, GraduationCap, ChevronRight, LogOut, RefreshCw,
+  ShieldCheck, UserCog, GraduationCap, ChevronRight, LogOut, RefreshCw, FileCheck,
 } from "lucide-react";
 import { dadosRef } from "./firebase";
 import { onValue, get, set } from "firebase/database";
@@ -356,6 +356,18 @@ export default function App() {
 
   const pixCola = (valor) => pixCopiaCola({ chave: config.pixChave, tipo: config.pixTipo, nome: config.pixNome, cidade: config.pixCidade, valor });
   const zapShare = (txt) => `https://wa.me/?text=${encodeURIComponent(txt)}`;
+  const modalidade = (a) => a.nivel === "Hidroginástica" ? "hidroginástica" : "natação";
+  const linkPedirComprovante = (a) => {
+    const num = (a.contato || "").replace(/\D/g, "");
+    const msg = `Olá ${a.nome}! 😊 Por favor, nos envie o comprovante de pagamento da mensalidade de ${modalidade(a)} (${brl(a.mensalidade)}) para confirmarmos o recebimento. Obrigado!`;
+    return `https://wa.me/55${num}?text=${encodeURIComponent(msg)}`;
+  };
+  const linkEnviarRecibo = (a) => {
+    const num = (a.contato || "").replace(/\D/g, "");
+    const forma = a.formaPagamento === "pix" ? "PIX" : "Dinheiro";
+    const msg = `Olá ${a.nome}! ✅ Confirmamos o recebimento da mensalidade de ${modalidade(a)} no valor de ${brl(a.mensalidade)} via ${forma}. Obrigado! 🏊`;
+    return `https://wa.me/55${num}?text=${encodeURIComponent(msg)}`;
+  };
   const copiarPix = async (a) => {
     const codigo = pixCola(a.mensalidade);
     if (!codigo) return;
@@ -886,11 +898,27 @@ export default function App() {
                       </>
                     )
                   )}
-                  {!ehProf && a.contato && (
+                  {!ehProf && a.contato && !a.pago && (
                     <a href={linkZap(a, true)} target="_blank" rel="noreferrer"
                       className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium justify-center"
                       style={{ background: "#E7F8ED", color: C.paid }}>
                       <MessageCircle size={14} /> Cobrar
+                    </a>
+                  )}
+                  {!ehProf && a.contato && !a.pago && (
+                    <a href={linkPedirComprovante(a)} target="_blank" rel="noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium justify-center"
+                      style={{ background: C.tint, color: C.sub }}
+                      title="Solicitar comprovante de pagamento">
+                      <FileCheck size={14} /> Comp.
+                    </a>
+                  )}
+                  {!ehProf && a.contato && a.pago && (
+                    <a href={linkEnviarRecibo(a)} target="_blank" rel="noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium justify-center"
+                      style={{ background: "#E7F8ED", color: C.paid }}
+                      title="Enviar recibo de pagamento">
+                      <FileCheck size={14} /> Recibo
                     </a>
                   )}
                   {!ehProf && config.pixChave && (
